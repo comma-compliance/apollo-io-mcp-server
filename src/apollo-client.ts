@@ -48,12 +48,61 @@ export interface PeopleSearchQuery {
   q_organization_domains_list?: string[];
   person_titles?: string[];
   person_seniorities?: string[];
+  organization_ids?: string[];
+  organization_locations?: string[];
+  contact_email_status?: string[];
+  q_keywords?: string;
+  person_locations?: string[];
+  include_similar_titles?: boolean;
+  organization_num_employees_ranges?: string[];
+  page?: number;
+  per_page?: number;
   [key: string]: any;
 }
 
 export interface OrganizationSearchQuery {
   q_organization_domains_list?: string[];
+  q_organization_keyword_tags?: string[];
   organization_locations?: string[];
+  organization_num_employees_ranges?: string[];
+  currently_using_any_of_technology_uids?: string[];
+  revenue_range?: { min?: number; max?: number };
+  q_organization_job_titles?: string[];
+  page?: number;
+  per_page?: number;
+  [key: string]: any;
+}
+
+export interface BulkPeopleEnrichmentDetail {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  domain?: string;
+  linkedin_url?: string;
+  organization_name?: string;
+  id?: string;
+}
+
+export interface BulkPeopleEnrichmentQuery {
+  details: BulkPeopleEnrichmentDetail[];
+  reveal_personal_emails?: boolean;
+  run_waterfall_email?: boolean;
+}
+
+export interface BulkOrganizationEnrichmentItem {
+  domain?: string;
+  organization_name?: string;
+  id?: string;
+}
+
+export interface BulkOrganizationEnrichmentQuery {
+  organizations: BulkOrganizationEnrichmentItem[];
+}
+
+export interface NewsArticlesSearchQuery {
+  q_organization_ids?: string[];
+  page?: number;
+  per_page?: number;
   [key: string]: any;
 }
 
@@ -137,10 +186,11 @@ export class ApolloClient {
   /**
    * Use the People Search endpoint to find people.
    * https://docs.apollo.io/reference/people-search
+   * Uses /mixed_people/api_search (free, no credits consumed).
    */
   async peopleSearch(query: PeopleSearchQuery): Promise<any> {
     try {
-      const url = `${this.baseUrl}/mixed_people/search`;
+      const url = `${this.baseUrl}/mixed_people/api_search`;
       const response = await this.axiosInstance.post(url, query);
       
       if (response.status === 200) {
@@ -230,6 +280,71 @@ export class ApolloClient {
       return emails;
     } catch (error: any) {
       console.error(`Error getting person email: ${error.message}`);
+      return null;
+    }
+  }
+
+  /**
+   * Bulk enrich data for up to 10 people at once.
+   * https://docs.apollo.io/reference/people-enrichment
+   * Consumes credits. Runs at 50% per-minute rate of single endpoints.
+   */
+  async bulkPeopleEnrichment(query: BulkPeopleEnrichmentQuery): Promise<any> {
+    try {
+      const url = `${this.baseUrl}/people/bulk_match`;
+      const response = await this.axiosInstance.post(url, query);
+
+      if (response.status === 200) {
+        return response.data;
+      } else {
+        console.error(`Error: ${response.status} - ${response.statusText}`);
+        return null;
+      }
+    } catch (error: any) {
+      console.error(`Error: ${error.response?.status} - ${error.response?.statusText || error.message}`);
+      return null;
+    }
+  }
+
+  /**
+   * Bulk enrich data for up to 10 organizations at once.
+   * https://docs.apollo.io/reference/organization-enrichment
+   * Runs at 50% per-minute rate of single endpoints.
+   */
+  async bulkOrganizationEnrichment(query: BulkOrganizationEnrichmentQuery): Promise<any> {
+    try {
+      const url = `${this.baseUrl}/organizations/bulk_enrich`;
+      const response = await this.axiosInstance.post(url, query);
+
+      if (response.status === 200) {
+        return response.data;
+      } else {
+        console.error(`Error: ${response.status} - ${response.statusText}`);
+        return null;
+      }
+    } catch (error: any) {
+      console.error(`Error: ${error.response?.status} - ${error.response?.statusText || error.message}`);
+      return null;
+    }
+  }
+
+  /**
+   * Search for news articles about target companies.
+   * Useful for prospecting context - recent news about target companies.
+   */
+  async newsArticlesSearch(query: NewsArticlesSearchQuery): Promise<any> {
+    try {
+      const url = `${this.baseUrl}/news_articles/search`;
+      const response = await this.axiosInstance.post(url, query);
+
+      if (response.status === 200) {
+        return response.data;
+      } else {
+        console.error(`Error: ${response.status} - ${response.statusText}`);
+        return null;
+      }
+    } catch (error: any) {
+      console.error(`Error: ${error.response?.status} - ${error.response?.statusText || error.message}`);
       return null;
     }
   }

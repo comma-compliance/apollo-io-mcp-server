@@ -4,7 +4,7 @@ COPY . /app
 
 WORKDIR /app
 
-RUN npm install
+RUN npm install && npm run build
 
 FROM node:22-alpine AS release
 

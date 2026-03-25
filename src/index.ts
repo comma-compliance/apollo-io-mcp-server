@@ -128,43 +128,120 @@ class ApolloServer {
         },
         {
           name: 'people_search',
-          description: 'Use the People Search endpoint to find people',
+          description: 'Search for people using Apollo.io. Free endpoint (no credits consumed). Supports filtering by org, title, location, email status, keywords, and more.',
           inputSchema: {
             type: 'object',
             properties: {
-              q_organization_domains_list: { 
-                type: 'array', 
+              q_organization_domains_list: {
+                type: 'array',
                 items: { type: 'string' },
-                description: 'List of organization domains to search within' 
+                description: 'List of organization domains to search within'
               },
-              person_titles: { 
-                type: 'array', 
+              person_titles: {
+                type: 'array',
                 items: { type: 'string' },
-                description: 'List of job titles to search for' 
+                description: 'List of job titles to search for'
               },
-              person_seniorities: { 
-                type: 'array', 
+              person_seniorities: {
+                type: 'array',
                 items: { type: 'string' },
-                description: 'List of seniority levels to search for' 
+                description: 'List of seniority levels to search for'
+              },
+              organization_ids: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'List of Apollo organization IDs to filter by'
+              },
+              organization_locations: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'List of organization locations to filter by'
+              },
+              contact_email_status: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Filter by email status (e.g. verified, guessed, unavailable)'
+              },
+              q_keywords: {
+                type: 'string',
+                description: 'Keywords to search for across person profiles'
+              },
+              person_locations: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'List of person locations to filter by'
+              },
+              include_similar_titles: {
+                type: 'boolean',
+                description: 'Include people with similar job titles'
+              },
+              organization_num_employees_ranges: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Employee count ranges (e.g. ["1,10", "11,50", "51,200"])'
+              },
+              page: {
+                type: 'number',
+                description: 'Page number (default 1, max 500)'
+              },
+              per_page: {
+                type: 'number',
+                description: 'Results per page (default 25, max 100)'
               }
             }
           }
         },
         {
           name: 'organization_search',
-          description: 'Use the Organization Search endpoint to find organizations',
+          description: 'Search for organizations using Apollo.io with full filtering (keyword tags, location, employee count, technology, revenue, job titles).',
           inputSchema: {
             type: 'object',
             properties: {
-              q_organization_domains_list: { 
-                type: 'array', 
+              q_organization_domains_list: {
+                type: 'array',
                 items: { type: 'string' },
-                description: 'List of organization domains to search for' 
+                description: 'List of organization domains to search for'
               },
-              organization_locations: { 
-                type: 'array', 
+              q_organization_keyword_tags: {
+                type: 'array',
                 items: { type: 'string' },
-                description: 'List of organization locations to search for' 
+                description: 'Keyword tags to filter organizations by (e.g. industry terms)'
+              },
+              organization_locations: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'List of organization locations to search for'
+              },
+              organization_num_employees_ranges: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Employee count ranges (e.g. ["1,10", "11,50", "51,200"])'
+              },
+              currently_using_any_of_technology_uids: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Apollo technology UIDs to filter by current tech stack'
+              },
+              revenue_range: {
+                type: 'object',
+                properties: {
+                  min: { type: 'number', description: 'Minimum revenue' },
+                  max: { type: 'number', description: 'Maximum revenue' }
+                },
+                description: 'Revenue range filter with min/max values'
+              },
+              q_organization_job_titles: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Filter orgs by job titles they are hiring for'
+              },
+              page: {
+                type: 'number',
+                description: 'Page number (default 1, max 500)'
+              },
+              per_page: {
+                type: 'number',
+                description: 'Results per page (default 25, max 100)'
               }
             }
           }
@@ -218,9 +295,89 @@ class ApolloServer {
             },
             required: ['company']
           }
+        },
+        {
+          name: 'bulk_people_enrichment',
+          description: 'Bulk enrich data for up to 10 people at once. Consumes credits. Rate-limited at 50% of single-endpoint rate.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              details: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    first_name: { type: 'string', description: "Person's first name" },
+                    last_name: { type: 'string', description: "Person's last name" },
+                    email: { type: 'string', description: "Person's email address" },
+                    domain: { type: 'string', description: 'Company domain' },
+                    linkedin_url: { type: 'string', description: "Person's LinkedIn URL" },
+                    organization_name: { type: 'string', description: 'Organization name' },
+                    id: { type: 'string', description: 'Apollo person ID' }
+                  }
+                },
+                description: 'Array of up to 10 person objects to enrich',
+                maxItems: 10
+              },
+              reveal_personal_emails: {
+                type: 'boolean',
+                description: 'Whether to reveal personal email addresses'
+              },
+              run_waterfall_email: {
+                type: 'boolean',
+                description: 'Whether to run waterfall email enrichment'
+              }
+            },
+            required: ['details']
+          }
+        },
+        {
+          name: 'bulk_organization_enrichment',
+          description: 'Bulk enrich data for up to 10 organizations at once. Rate-limited at 50% of single-endpoint rate.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              organizations: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    domain: { type: 'string', description: 'Company domain' },
+                    organization_name: { type: 'string', description: 'Organization name' },
+                    id: { type: 'string', description: 'Apollo organization ID' }
+                  }
+                },
+                description: 'Array of up to 10 organization objects to enrich',
+                maxItems: 10
+              }
+            },
+            required: ['organizations']
+          }
+        },
+        {
+          name: 'news_articles_search',
+          description: 'Search for recent news articles about target companies. Useful for prospecting context before outreach.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              q_organization_ids: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Apollo organization IDs to find news for'
+              },
+              page: {
+                type: 'number',
+                description: 'Page number (default 1)'
+              },
+              per_page: {
+                type: 'number',
+                description: 'Results per page (default 25, max 100)'
+              }
+            }
+          }
         }
       ];
-      
+
       return { tools };
     });
 
@@ -291,6 +448,36 @@ class ApolloServer {
           
           case 'employees_of_company': {
             const result = await this.apollo.employeesOfCompany(args as any);
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify(result, null, 2)
+              }]
+            };
+          }
+
+          case 'bulk_people_enrichment': {
+            const result = await this.apollo.bulkPeopleEnrichment(args as any);
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify(result, null, 2)
+              }]
+            };
+          }
+
+          case 'bulk_organization_enrichment': {
+            const result = await this.apollo.bulkOrganizationEnrichment(args as any);
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify(result, null, 2)
+              }]
+            };
+          }
+
+          case 'news_articles_search': {
+            const result = await this.apollo.newsArticlesSearch(args as any);
             return {
               content: [{
                 type: 'text',
