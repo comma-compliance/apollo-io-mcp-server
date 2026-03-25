@@ -19,4 +19,4 @@ ENV NODE_ENV=production
 
 RUN npm ci --ignore-scripts --omit-dev
 EXPOSE 8080
-ENTRYPOINT ["npx", "mcp-proxy", "node", "dist/index.js"]
+CMD ["npx", "mcp-proxy", "node", "dist/index.js"]
