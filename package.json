@@ -45,6 +45,6 @@
     "follow-redirects": "1.16.0",
     "path-to-regexp": "8.4.0",
     "qs": "6.15.2",
-    "body-parser": "2.2.1"
+    "body-parser": "^2.3.0"
   }
 }
