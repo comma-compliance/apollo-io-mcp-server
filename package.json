@@ -28,7 +28,7 @@
   "author": "lakhvinder singh",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.2",
+    "@modelcontextprotocol/sdk": "^1.32.0",
     "axios": "^1.20.0",
     "dotenv": "^16.4.7",
     "mcp-proxy-auth": "^1.0.1",
