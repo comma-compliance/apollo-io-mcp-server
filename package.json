@@ -28,7 +28,7 @@
   "author": "lakhvinder singh",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.2",
+    "@modelcontextprotocol/sdk": "^1.32.0",
     "axios": "^1.20.0",
     "dotenv": "^16.4.7",
     "mcp-proxy-auth": "^1.0.1",
@@ -40,15 +40,15 @@
     "typescript": "^5.3.3"
   },
   "resolutions": {
-    "@modelcontextprotocol/sdk": "^1.31.0",
+    "@modelcontextprotocol/sdk": "^1.32.0",
     "form-data": "4.0.6",
-    "follow-redirects": "1.16.0",
+    "follow-redirects": "1.16.1",
     "path-to-regexp": "8.4.0",
     "qs": "^6.16.0",
     "body-parser": "^2.3.0",
     "ip-address": "^10.2.2",
     "fast-uri": "^3.1.8",
-    "hono": "^4.13.5",
+    "hono": "^4.13.11",
     "proxy-addr": "^2.0.8"
   }
 }
